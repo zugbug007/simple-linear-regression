@@ -1,0 +1,64 @@
+---
+title: "TV Ad Analysis"
+author: "Alan Millington"
+date: "22/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggpubr)
+library(readr)
+```
+
+```{r dataload}
+softlaunch <- read_csv("TV/softlaunch.csv", col_types = cols(Day = col_date(format = "%d/%m/%Y")))
+launched <- read_csv("TV/launched.csv", col_types = cols(Day = col_date(format = "%d/%m/%Y")))
+tvadtimes <- read_csv("TV/tvadtimes.csv", col_types = cols(TV_Date = col_date(format = "%d/%m/%Y")))
+
+```
+
+
+```{r eda}
+head(launched)
+head(softlaunch)
+```
+
+```{r summary}
+summary(softlaunch)
+summary(launched)
+quantile(softlaunch$Donate_Rev)
+quantile(launched$Donate_Rev)
+```
+```{r dplyr clean up}
+
+tv_ads <- tvadtimes %>%
+  select(TV_Date,TV_StartTime, Status) %>%
+  group_by(TV_Date, Status) %>%
+  count(TV_StartTime) %>%
+  summarise(TV_Date, ads = sum(n)) %>%
+  distinct()
+
+tv_ads_softlaunch <- tv_ads %>%
+  filter(Status=="SoftLaunch")
+tv_ads_launched <- tv_ads %>%
+  filter(Status=="Launched")  
+
+#Merge the data on ad count into the main data sets
+softlaunch <- merge(softlaunch,tv_ads_softlaunch, by.x=c("Day"), by.y = c("TV_Date"))
+launched <- merge(launched,tv_ads_launched, by.x=c("Day"), by.y = c("TV_Date"))
+
+```
+
+
+```{r plot basics, echo=FALSE}
+#need to double check this is right
+# format predictor first, then metric
+
+plot(softlaunch$ads, softlaunch$Donate_Rev)
+plot(launched$ads, launched$Donate_Rev)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
