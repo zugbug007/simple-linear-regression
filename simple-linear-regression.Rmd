@@ -26,10 +26,10 @@ head(softlaunch)
 ```
 
 ```{r summary}
-summary(softlaunch)
-summary(launched)
-quantile(softlaunch$Donate_Rev)
-quantile(launched$Donate_Rev)
+#summary(softlaunch)
+#summary(launched)
+#quantile(softlaunch$Donate_Rev)
+#quantile(launched$Donate_Rev)
 ```
 ```{r dplyr clean up}
 
@@ -54,11 +54,36 @@ launched <- merge(launched,tv_ads_launched, by.x=c("Day"), by.y = c("TV_Date"))
 
 ```{r plot basics, echo=FALSE}
 #need to double check this is right
-# format predictor first, then metric
-
 plot(softlaunch$ads, softlaunch$Donate_Rev)
 plot(launched$ads, launched$Donate_Rev)
 
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+# Sales on X Axis, predictor on
+ggplot(softlaunch, aes(x = ads, y=Donate_Rev)) + geom_point() + stat_smooth()
+ggplot(launched, aes(x = ads, y=Donate_Rev)) + geom_point() + stat_smooth()
+
+# LM Smoothing
+ggplot(softlaunch, aes(x = ads, y=Donate_Rev)) + geom_point() + stat_smooth(method = lm)
+ggplot(launched, aes(x = ads, y=Donate_Rev)) + geom_point() + stat_smooth(method = lm)
+
+#ggplot(launched, aes(x = ads, y=Donate_Sales)) + geom_point() + stat_smooth()
+#ggplot(launched, aes(x = ads, y=Unique_Visitors)) + geom_point() + stat_smooth()
+#ggplot(launched, aes(x = ads, y=Shop_Rev)) + geom_point() + stat_smooth()
+#ggplot(launched, aes(x = ads, y=Holiday_Rev)) + geom_point() + stat_smooth()
+
+```
+```{r}
+model <- lm(ads ~ Donate_Rev, data = launched)
+summary(model)
+```
+```{r}
+confint(model)
+```
+
+```{r}
+sigma(model)*100/mean(launched$Donate_Rev)
+```
+
